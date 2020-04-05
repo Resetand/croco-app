@@ -31,7 +31,7 @@ export const UserProvider: FC = ({ children }) => {
 
     const getUser = async () => {
         setLoading(true);
-        await api.get<AppUser>('api/user').then(ifSuccess(setUser));
+        await api.get<AppUser>('/user').then(ifSuccess(setUser));
         setLoading(false);
     };
 
@@ -54,7 +54,7 @@ export const UserProvider: FC = ({ children }) => {
         user,
         setAccessToken: setToken,
         accessToken: token,
-        clearToken: () => setToken(undefined)
+        clearToken: () => setToken(undefined),
     };
 
     return <UserContext.Provider value={ctx}>{children}</UserContext.Provider>;

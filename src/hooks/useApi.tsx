@@ -2,8 +2,9 @@ import { makeUseAxios, Options, ResponseValues, RefetchOptions } from 'axios-hoo
 import * as antd from 'antd';
 import axios, { AxiosRequestConfig, AxiosPromise } from 'axios';
 import React, { Fragment, useEffect } from 'react';
-import { AsyncResult, error, isError, ResultError } from '../utils/result';
-import { useUser } from '../containers/UserProvider/UserProvider';
+import { AsyncResult, error, isError, ResultError, Result } from '../utils/result';
+import { useUser } from '../compoents/UserProvider/UserProvider';
+import { config } from '../config';
 
 export const useApi = (args: { token?: string | null } = {}) => {
     const user = useUser();
@@ -14,28 +15,33 @@ export const useApi = (args: { token?: string | null } = {}) => {
         headers['Authorization'] = `Bearer ${user.accessToken}`;
     }
 
-    // FIXME
     const instance = axios.create({
-        baseURL: 'http://localhost:4001',
-        headers
+        baseURL: config.apiUrl,
+        headers,
     });
 
     const useAxios = makeUseAxios({ axios: instance });
+    const withHandleRes = <R extends Result<any>>(res: R) => {
+        if (isError(res)) {
+            handleError(res);
+        }
+        return res;
+    };
 
     return {
-        post: function<T>(url: string, data?: any, config?: AxiosRequestConfig): AsyncResult<T> {
+        post: function <T>(url: string, data?: any, config?: AxiosRequestConfig): AsyncResult<T> {
             return instance
                 .post<T>(url, data, config)
-                .then(x => x.data)
+                .then((x) => withHandleRes(x.data))
                 .catch(handleError);
         },
-        get: function<T>(url: string, config?: AxiosRequestConfig): AsyncResult<T> {
+        get: function <T>(url: string, config?: AxiosRequestConfig): AsyncResult<T> {
             return instance
                 .get<T>(url, config)
-                .then(x => x.data)
+                .then((x) => withHandleRes(x.data))
                 .catch(handleError);
         },
-        useAxios: function<T = any>(
+        useAxios: function <T = any>(
             config: AxiosRequestConfig | string,
             options?: Options
         ): [
@@ -50,25 +56,25 @@ export const useApi = (args: { token?: string | null } = {}) => {
             }, [error]);
 
             return [{ data, loading, error, response }, refetch];
-        }
+        },
     };
 };
 
-const handleError = (e: any): ResultError<unknown> => {
+const handleError = (e: Error | ResultError<unknown>): ResultError<unknown> => {
     console.error(e);
-
     let resError: ResultError<unknown>;
-    if (isError(e.response?.data)) {
-        resError = e.response.data;
+
+    if (e instanceof Error) {
+        resError = error('UNKNOWN', 'Произшла неизвестная ошибка', 500, e.message);
     } else {
-        resError = error('UNKNOWN', 'Произшла неизвестная ошибка', e.status, e.response);
+        resError = e;
     }
 
     antd.notification.open({
         message: (
             <Fragment>
                 <antd.Tag color="red">{resError.statusCode || e.message}</antd.Tag>
-                Произошла ошибка
+                An error occurred
             </Fragment>
         ),
         description: (
@@ -80,7 +86,7 @@ const handleError = (e: any): ResultError<unknown> => {
                     />
                 </antd.Collapse.Panel>
             </antd.Collapse>
-        )
+        ),
     });
 
     return resError;
