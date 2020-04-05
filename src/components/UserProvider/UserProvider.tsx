@@ -12,7 +12,7 @@ export type AppUser = {
 type UserContextData = {
     user?: AppUser;
     accessToken?: string;
-    setAccessToken: (token: string) => void;
+    setAccessToken: (token: string, persist?: boolean) => void;
     clearToken: () => void;
 };
 
@@ -38,9 +38,7 @@ export const UserProvider: FC = ({ children }) => {
     useEffect(() => {
         if (token) {
             getUser();
-            localStorage.setItem(OAUTH_TOKEN, token);
         } else {
-            localStorage.removeItem(OAUTH_TOKEN);
             setUser(undefined);
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -50,11 +48,23 @@ export const UserProvider: FC = ({ children }) => {
         return <antd.Spin />;
     }
 
+    const setAccessTokenIml = (token: string | undefined, persistToken = true) => {
+        setToken(token);
+        if (!persistToken) {
+            return;
+        }
+        if (token) {
+            localStorage.setItem(OAUTH_TOKEN, token);
+        } else {
+            localStorage.removeItem(OAUTH_TOKEN);
+        }
+    };
+
     const ctx: UserContextData = {
         user,
-        setAccessToken: setToken,
+        setAccessToken: setAccessTokenIml,
         accessToken: token,
-        clearToken: () => setToken(undefined),
+        clearToken: () => setAccessTokenIml(undefined),
     };
 
     return <UserContext.Provider value={ctx}>{children}</UserContext.Provider>;

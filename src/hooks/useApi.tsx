@@ -3,7 +3,7 @@ import * as antd from 'antd';
 import axios, { AxiosRequestConfig, AxiosPromise } from 'axios';
 import React, { Fragment, useEffect } from 'react';
 import { AsyncResult, error, isError, ResultError, Result } from '../utils/result';
-import { useUser } from '../compoents/UserProvider/UserProvider';
+import { useUser } from '../components/UserProvider/UserProvider';
 import { config } from '../config';
 
 export const useApi = (args: { token?: string | null } = {}) => {
