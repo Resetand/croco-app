@@ -1,6 +1,6 @@
 import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons';
 import * as antd from 'antd';
-import React, { FC } from 'react';
+import React, { FC, Fragment } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import { useApi } from '../../hooks/useApi';
 import { isSuccess } from '../../utils/result';
@@ -28,45 +28,48 @@ export const RegistrationForm: FC = () => {
     };
 
     return (
-        <antd.Card title="Registration" bordered={false}>
-            <antd.Form
-                initialValues={{ remember: true }}
-                onFinish={(values) => onFinish(values as RegistrationValues)}
+        <Fragment>
+            <antd.Card
+                headStyle={{ fontSize: 25, textAlign: 'center' }}
+                title="Create an account"
+                bordered={false}
             >
-                <antd.Form.Item
-                    name="username"
-                    rules={[{ required: true, message: 'Please input your Username!' }]}
+                <antd.Form
+                    initialValues={{ remember: true }}
+                    onFinish={(values) => onFinish(values as RegistrationValues)}
                 >
-                    <antd.Input prefix={<UserOutlined />} placeholder="Username" />
-                </antd.Form.Item>
-                <antd.Form.Item
-                    name="email"
-                    rules={[{ required: true, message: 'Please input your Email!' }]}
-                >
-                    <antd.Input prefix={<MailOutlined />} placeholder="Email" />
-                </antd.Form.Item>
-                <antd.Form.Item
-                    name="password"
-                    rules={[{ required: true, message: 'Please input your Password!' }]}
-                >
-                    <antd.Input prefix={<LockOutlined />} type="password" placeholder="Password" />
-                </antd.Form.Item>
-                <antd.Form.Item>
-                    <antd.Form.Item name="remember" valuePropName="checked" noStyle>
-                        <antd.Checkbox>Remember me</antd.Checkbox>
+                    <antd.Form.Item name="username" rules={[{ required: true }]}>
+                        <antd.Input prefix={<UserOutlined />} placeholder="Username" />
                     </antd.Form.Item>
-                </antd.Form.Item>
+                    <antd.Form.Item name="email" rules={[{ required: true }]}>
+                        <antd.Input prefix={<MailOutlined />} placeholder="Email" />
+                    </antd.Form.Item>
+                    <antd.Form.Item name="password" rules={[{ required: true }]}>
+                        <antd.Input
+                            prefix={<LockOutlined />}
+                            type="password"
+                            placeholder="Password"
+                        />
+                    </antd.Form.Item>
+                    <antd.Form.Item>
+                        <antd.Form.Item name="remember" valuePropName="checked" noStyle>
+                            <antd.Checkbox>Remember me</antd.Checkbox>
+                        </antd.Form.Item>
+                    </antd.Form.Item>
 
-                <antd.Form.Item>
-                    <antd.Button htmlType="submit" type="primary">
-                        Register
-                    </antd.Button>
-
-                    <antd.Button type="link">
-                        <Link to="/auth/login">Login</Link>
-                    </antd.Button>
-                </antd.Form.Item>
-            </antd.Form>
-        </antd.Card>
+                    <antd.Form.Item>
+                        <antd.Button htmlType="submit" type="primary">
+                            Register
+                        </antd.Button>
+                    </antd.Form.Item>
+                </antd.Form>
+            </antd.Card>
+            <antd.Row style={{ marginTop: 20 }} justify="center">
+                Do you already have account?
+            </antd.Row>
+            <antd.Row justify="center">
+                <Link to="/auth/login">Login</Link>
+            </antd.Row>
+        </Fragment>
     );
 };

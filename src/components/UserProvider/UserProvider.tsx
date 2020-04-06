@@ -64,7 +64,7 @@ export const UserProvider: FC = ({ children }) => {
         user,
         setAccessToken: setAccessTokenIml,
         accessToken: token,
-        clearToken: () => setAccessTokenIml(undefined),
+        clearToken: () => setAccessTokenIml(undefined, true),
     };
 
     return <UserContext.Provider value={ctx}>{children}</UserContext.Provider>;

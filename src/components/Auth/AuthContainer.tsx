@@ -3,16 +3,16 @@ import React, { FC } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
 import { LoginForm } from './LoginForm';
 import { RegistrationForm } from './RegistrationForm';
+import { ForgotPasswordRequestForm, RecoveryPasswordForm } from './ForgotPassword';
 
 export const AuthContainer: FC = () => {
     return (
         <AuthPageLayout>
             <Switch>
-                <Route path="/auth/login">
-                    <LoginForm />
-                </Route>
+                <Route component={LoginForm} path="/auth/login" />
                 <Route component={RegistrationForm} path="/auth/registration" />
-                {/* <Route path="auth/reset" /> */}
+                <Route component={ForgotPasswordRequestForm} path="/auth/forgot" exact />
+                <Route component={RecoveryPasswordForm} path="/auth/forgot/:token" />
                 <Redirect to="/auth/login" />
             </Switch>
         </AuthPageLayout>
