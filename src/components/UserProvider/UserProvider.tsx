@@ -5,7 +5,7 @@ import { ifSuccess } from '../../utils/result';
 
 export type AppUser = {
     id: string;
-    login: string;
+    username: string;
     email: string;
 };
 

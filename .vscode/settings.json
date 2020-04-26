@@ -1,6 +1,14 @@
 {
     "cSpell.ignoreWords": [
+        "antd",
+        "open",
+        "openvidu",
         "options",
-        "refetch"
+        "refetch",
+        "secret",
+        "server",
+        "sider",
+        "vidu",
+        "visible"
     ]
 }
