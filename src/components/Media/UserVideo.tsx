@@ -1,19 +1,21 @@
-import React, { FC } from 'react';
-import { StreamManager } from 'openvidu-browser';
-import { Video } from './Video';
-import { AppUser } from '../UserProvider/UserProvider';
 import * as antd from 'antd';
+import { Video } from 'components/Media/Video';
+import { StreamManager } from 'openvidu-browser';
+import React, { FC } from 'react';
 
-export const UserVideo: FC<{ streamManager: StreamManager }> = ({ streamManager }) => {
+type ConnectionPayload = {
+    userId: string;
+    username: string;
+};
+
+export const UserVideo: FC<{ stream: StreamManager }> = ({ stream }) => {
     const getUserName = () => {
-        const user: AppUser = JSON.parse(streamManager.stream.connection.data)?.clientData;
-        console.log(user);
-
-        return user.username;
+        const data: ConnectionPayload = JSON.parse(stream.stream.connection.data);
+        return data.username;
     };
-    return streamManager ? (
+    return stream ? (
         <div style={{ position: 'relative' }}>
-            <Video streamManager={streamManager} />
+            <Video streamManager={stream} />
             <div style={{ position: 'absolute', bottom: 20, left: 20 }}>
                 <antd.Typography.Text style={{ color: '#fff', textShadow: ' 1px 1px 2px black' }}>
                     {getUserName()}

@@ -1,9 +1,9 @@
 import * as antd from 'antd';
 import React, { FC } from 'react';
 import { Redirect, Route, Switch } from 'react-router-dom';
-import { LoginForm } from './LoginForm';
-import { RegistrationForm } from './RegistrationForm';
-import { ForgotPasswordRequestForm, RecoveryPasswordForm } from './ForgotPassword';
+import { LoginForm } from 'components/Auth/LoginForm';
+import { RegistrationForm } from 'components/Auth/RegistrationForm';
+import { ForgotPasswordRequestForm, RecoveryPasswordForm } from 'components/Auth/ForgotPassword';
 
 export const AuthContainer: FC = () => {
     return (

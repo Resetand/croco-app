@@ -2,9 +2,9 @@ import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons';
 import * as antd from 'antd';
 import React, { FC, Fragment } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { useApi } from '../../hooks/useApi';
-import { isSuccess } from '../../utils/result';
-import { useUser } from '../UserProvider/UserProvider';
+import { useAuth } from 'components/Auth/AuthProvider';
+import { useApiCallback } from 'services/api/hooks';
+import { ifSuccess } from 'utils/result';
 
 type RegistrationValues = {
     username: string;
@@ -14,17 +14,17 @@ type RegistrationValues = {
 };
 
 export const RegistrationForm: FC = () => {
-    const { post } = useApi();
-    const { setAccessToken } = useUser();
+    const { setAccessToken } = useAuth();
     const history = useHistory();
+    const registerReq = useApiCallback((x) => x.auth.register);
 
     const onFinish = async (values: RegistrationValues) => {
-        const res = await post<{ accessToken: string }>('/auth/register', values);
-        console.log({ res });
-        if (isSuccess(res)) {
-            setAccessToken(res.accessToken, values.remember);
-            history.replace('/');
-        }
+        await registerReq(values).then(
+            ifSuccess((res) => {
+                setAccessToken(res.accessToken);
+                history.replace('/');
+            })
+        );
     };
 
     return (
