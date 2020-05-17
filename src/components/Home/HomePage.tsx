@@ -1,9 +1,10 @@
+/* eslint-disable no-sequences */
 import * as antd from 'antd';
 import * as icons from '@ant-design/icons';
 import React, { FC, useEffect, useState } from 'react';
-import { useParams, useHistory } from 'react-router-dom';
-import { useMediaSession } from 'services/media-service/useMedia';
-import { UserVideo } from 'components/Media/UserVideo';
+import { useHistory } from 'react-router-dom';
+// import { useMediaSession } from 'services/media-service/useMedia';
+// import { UserVideo } from 'components/Media/UserVideo';
 import { useApiCallback } from 'services/api/hooks';
 import { Lobby as LobbyT } from 'types/Lobby';
 import { ColumnsType } from 'antd/lib/table';
@@ -112,25 +113,31 @@ export const LobbyList: FC = () => {
 };
 
 export const Lobby: FC = () => {
-    const { lobbyId } = useParams<{ lobbyId: string }>();
-    const { connect, publisher, subscribers } = useMediaSession({ lobbyId });
+    // const { lobbyId } = useParams<{ lobbyId: string }>();
+    // const { connect, publisher, subscribers } = useMediaSession({ lobbyId });
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    useEffect(() => void connect(), []);
+    // useEffect(() => void connect(), []);
 
     return (
         <antd.Row>
             <antd.Col lg={18}>
-                {publisher !== undefined && <UserVideo stream={publisher} />}
+                <Stub />
+                {/* {publisher !== undefined && <UserVideo stream={publisher} />} */}
             </antd.Col>
 
             <antd.Col lg={6}>
-                {subscribers.map((sub, i) => (
+                {/* {subscribers.map((sub, i) => (
                     <div style={{ width: 300, height: 140, backgroundColor: '#ccc' }} key={i}>
                         <UserVideo stream={sub} />
                     </div>
-                ))}
+                ))} */}
+                <Stub />
             </antd.Col>
         </antd.Row>
     );
+};
+
+const Stub: FC<{ w?: number; h?: number }> = ({ w = 300, h = 200 }) => {
+    return <div style={{ background: '#ccc', width: w, height: h }}></div>;
 };
