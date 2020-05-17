@@ -7,7 +7,7 @@ export const errorCodes = [
     'UNAUTHORIZED',
     'TOO_MANY_REQUESTS',
     'EXPIRED',
-    'UNKNOWN'
+    'UNKNOWN',
 ] as const;
 
 export type ErrorCode = typeof errorCodes[number];
@@ -34,7 +34,7 @@ export const map = <T, R>(fn: (res: T) => R) => {
     };
 };
 
-export const ifSuccess = <T, P, R>(map: (res: T) => R) => {
+export const ifSuccess = <T, P, R>(map: (res: T) => R | Promise<R>) => {
     return (res: Result<T, P>) => {
         if (isSuccess(res)) {
             return map(res);
@@ -79,7 +79,7 @@ const createFactory = <T extends ErrorCode>(code: T, statusCode: number) => <P>(
     code,
     message,
     statusCode,
-    payload
+    payload,
 });
 
 export const notFound = createFactory('NOT_FOUND', 400);
@@ -105,5 +105,5 @@ export const error = <P>(
     code,
     message,
     statusCode: httpStatusCode,
-    payload
+    payload,
 });

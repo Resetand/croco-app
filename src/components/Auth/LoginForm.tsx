@@ -1,10 +1,10 @@
-import React, { Fragment } from 'react';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import * as antd from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
+import React, { Fragment } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { useApi } from '../../hooks/useApi';
-import { isSuccess } from '../../utils/result';
-import { useUser } from '../UserProvider/UserProvider';
+import { ifSuccess } from 'utils/result';
+import { useApiCallback } from 'services/api/hooks';
+import { useAuth } from 'components/Auth/AuthProvider';
 
 type LoginValues = {
     username: string;
@@ -13,20 +13,17 @@ type LoginValues = {
 };
 
 export const LoginForm = () => {
-    const { post } = useApi();
-    const { setAccessToken } = useUser();
+    const { setAccessToken } = useAuth();
     const history = useHistory();
+    const login = useApiCallback((x) => x.auth.login);
 
     const onFinish = async (values: LoginValues) => {
-        const res = await post<{ accessToken: string }>('/auth/login', {
-            password: values.password,
-            username: values.username,
-        });
-
-        if (isSuccess(res)) {
-            setAccessToken(res.accessToken, values.remember);
-            history.replace('/');
-        }
+        login(values).then(
+            ifSuccess((res) => {
+                setAccessToken(res.accessToken);
+                history.replace('/');
+            })
+        );
     };
 
     return (

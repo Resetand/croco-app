@@ -1,6 +1,7 @@
 {
     "cSpell.ignoreWords": [
         "antd",
+        "croco",
         "open",
         "openvidu",
         "options",
@@ -8,7 +9,9 @@
         "secret",
         "server",
         "sider",
+        "unpublish",
         "vidu",
         "visible"
-    ]
+    ],
+    "typescript.preferences.importModuleSpecifier": "non-relative"
 }

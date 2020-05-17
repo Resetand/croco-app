@@ -1,8 +1,14 @@
+/* eslint-disable no-sequences */
 import * as antd from 'antd';
-import React, { FC, useEffect } from 'react';
-import { useParams, useHistory, Link } from 'react-router-dom';
-import { useMediaSession } from '../../hooks/useMedia';
-import { UserVideo } from '../Media/UserVideo';
+import * as icons from '@ant-design/icons';
+import React, { FC, useEffect, useState } from 'react';
+import { useHistory } from 'react-router-dom';
+// import { useMediaSession } from 'services/media-service/useMedia';
+// import { UserVideo } from 'components/Media/UserVideo';
+import { useApiCallback } from 'services/api/hooks';
+import { Lobby as LobbyT } from 'types/Lobby';
+import { ColumnsType } from 'antd/lib/table';
+import { ifSuccess } from 'utils/result';
 
 export const HomePage: FC = () => {
     return (
@@ -21,45 +27,126 @@ export const HomePage: FC = () => {
     );
 };
 
-export const Rooms: FC = () => {
-    const rooms = [{ id: 'default', name: 'default' }];
-    const columns = [{ title: 'Name', dataIndex: 'name' }];
+type CreateLobbyModalProps = {
+    onSuccess?: () => void;
+    visible: boolean;
+    onClosed: () => void;
+};
+export const CreateLobbyModal: FC<CreateLobbyModalProps> = ({ onSuccess, visible, onClosed }) => {
+    const createLobbyReq = useApiCallback((x) => x.lobbies.create);
+    const [loading, setLoading] = useState(false);
+    const handle = () => {
+        setLoading(true);
+        createLobbyReq(name)
+            .then(ifSuccess(() => onSuccess?.()))
+            .finally(() => setLoading(false));
+    };
+
+    const [name, setName] = useState('');
+    return (
+        <antd.Modal
+            bodyStyle={{ paddingTop: 50 }}
+            okButtonProps={{ loading, disabled: loading }}
+            onOk={handle}
+            visible={visible}
+            closable
+            onCancel={onClosed}
+        >
+            <antd.Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Lobby name"
+            />
+        </antd.Modal>
+    );
+};
+
+export const LobbyList: FC = () => {
+    const getLobbies = useApiCallback((x) => x.lobbies.getLobbies);
+    const [lobbies, setLobbies] = useState<LobbyT[]>([]);
+    const [loading, setLoading] = useState(false);
+    const [modalVisible, setModalVisible] = useState(false);
+
+    const refetch = () => {
+        setLoading(true);
+        getLobbies()
+            .then(ifSuccess(setLobbies))
+            .finally(() => setLoading(false));
+    };
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    useEffect(() => void refetch(), []);
+
+    const columns: ColumnsType<LobbyT> = [
+        { title: 'Name', dataIndex: 'name' },
+        {
+            title: 'ID',
+            dataIndex: 'hrId',
+            render: (_, record) => (
+                <antd.Tag>
+                    <code>{record.hrId}</code>
+                </antd.Tag>
+            ),
+        },
+    ];
     const { push } = useHistory();
 
     return (
         <antd.Row style={{ padding: 16 }}>
-            <antd.Typography.Title>Rooms</antd.Typography.Title>
+            <antd.Row justify="center" align="middle">
+                <antd.Typography.Title style={{ marginBottom: 3, marginRight: 20 }}>
+                    Lobbies
+                </antd.Typography.Title>
+
+                <antd.Button
+                    onClick={() => setModalVisible(true)}
+                    icon={<icons.PlusOutlined />}
+                    type="dashed"
+                />
+            </antd.Row>
             <antd.Col xs={24}>
                 <antd.Table
-                    onRow={({ id }) => ({
-                        onClick: () => push(`/conference/${id}`),
-                    })}
+                    loading={loading}
+                    onRow={({ hrId }) => ({ onClick: () => push(`/lobbies/${hrId}`) })}
                     columns={columns}
-                    dataSource={rooms}
+                    dataSource={lobbies}
                 />
+            </antd.Col>
+            <CreateLobbyModal
+                visible={modalVisible}
+                onClosed={() => setModalVisible(false)}
+                onSuccess={() => (refetch(), setModalVisible(false))}
+            />
+        </antd.Row>
+    );
+};
+
+export const Lobby: FC = () => {
+    // const { lobbyId } = useParams<{ lobbyId: string }>();
+    // const { connect, publisher, subscribers } = useMediaSession({ lobbyId });
+
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // useEffect(() => void connect(), []);
+
+    return (
+        <antd.Row>
+            <antd.Col lg={18}>
+                <Stub />
+                {/* {publisher !== undefined && <UserVideo stream={publisher} />} */}
+            </antd.Col>
+
+            <antd.Col lg={6}>
+                {/* {subscribers.map((sub, i) => (
+                    <div style={{ width: 300, height: 140, backgroundColor: '#ccc' }} key={i}>
+                        <UserVideo stream={sub} />
+                    </div>
+                ))} */}
+                <Stub />
             </antd.Col>
         </antd.Row>
     );
 };
 
-export const Conference: FC = () => {
-    const { roomId } = useParams<{ roomId: string }>();
-    const { joinSession, streamManager, subscribers } = useMediaSession(roomId);
-
-    useEffect(() => joinSession(), []);
-
-    return (
-        <antd.Row>
-            <antd.Col lg={18}>
-                {streamManager !== undefined && <UserVideo streamManager={streamManager} />}
-            </antd.Col>
-            <antd.Col lg={6}>
-                {subscribers.map((sub, i) => (
-                    <div style={{ width: 300, height: 140, backgroundColor: '#ccc' }} key={i}>
-                        <UserVideo streamManager={sub} />
-                    </div>
-                ))}
-            </antd.Col>
-        </antd.Row>
-    );
+const Stub: FC<{ w?: number; h?: number }> = ({ w = 300, h = 200 }) => {
+    return <div style={{ background: '#ccc', width: w, height: h }}></div>;
 };
