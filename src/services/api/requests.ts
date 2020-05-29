@@ -1,5 +1,6 @@
 import { clients } from 'services/api/utils';
 import { Lobby } from 'types/Lobby';
+import { MessageVm } from 'types/Chat';
 
 type RegistrationData = {
     username: string;
@@ -27,4 +28,10 @@ export const lobbies = {
     getLobbies: () => clients.get<Lobby[]>('/lobbies'),
     getToken: (anyLobbyId: string) =>
         clients.post<{ token: string }>(`/lobbies/${anyLobbyId}/token`),
+};
+
+export const chat = {
+    getMessages: (lobby_id: string) => {
+        return clients.get<MessageVm[]>('chat/messages', { params: { lobby_id } });
+    },
 };

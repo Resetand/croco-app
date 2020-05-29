@@ -3,11 +3,11 @@ import * as antd from 'antd';
 import React, { FC } from 'react';
 import { useHistory } from 'react-router-dom';
 import { ReactComponent as Logo } from '../../assets/logo.svg';
-import { useAuth } from '../Auth/AuthProvider';
+import { useUser } from '../Auth/AuthProvider';
 
 export const AppLayout: FC = ({ children }) => {
     const { push } = useHistory();
-    const { setAccessToken } = useAuth();
+    const { setAccessToken } = useUser();
 
     return (
         <antd.Layout style={{ minHeight: '100vh' }}>
@@ -16,7 +16,7 @@ export const AppLayout: FC = ({ children }) => {
                     <div className={'logo-container'} onClick={() => push('/')}>
                         <Logo style={{ width: 50 }} />
                     </div>
-                    <antd.Menu.Item onClick={() => push('/lobbies/create')}>
+                    <antd.Menu.Item onClick={() => alert('TODO')}>
                         <icons.PlusOutlined />
                         <antd.Typography.Text>Create lobby</antd.Typography.Text>
                     </antd.Menu.Item>
@@ -34,7 +34,7 @@ export const AppLayout: FC = ({ children }) => {
             </antd.Layout.Sider>
             <antd.Layout>
                 <antd.Layout.Content className="app-content">{children}</antd.Layout.Content>
-                <antd.Layout.Footer style={{ textAlign: 'center' }}>
+                <antd.Layout.Footer style={{ textAlign: 'center', padding: 17 }}>
                     Croco app ©2020
                 </antd.Layout.Footer>
             </antd.Layout>

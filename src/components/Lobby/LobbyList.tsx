@@ -3,11 +3,9 @@
 import * as icons from '@ant-design/icons';
 import * as antd from 'antd';
 import { ColumnsType } from 'antd/lib/table';
-import { ChatView } from 'components/Chat/Chat';
 import React, { FC, useEffect, useState } from 'react';
-import { useHistory, useParams } from 'react-router-dom';
+import { useHistory } from 'react-router-dom';
 import { useApiCallback } from 'services/api/hooks';
-import { useLobby } from 'services/lobby';
 import { Lobby as LobbyT } from 'types/Lobby';
 import { ifSuccess } from 'utils/result';
 
@@ -24,6 +22,7 @@ type CreateLobbyModalProps = {
     visible: boolean;
     onClosed: () => void;
 };
+
 export const CreateLobbyModal: FC<CreateLobbyModalProps> = ({ onSuccess, visible, onClosed }) => {
     const createLobbyReq = useApiCallback((x) => x.lobbies.create);
     const [loading, setLoading] = useState(false);
@@ -111,12 +110,4 @@ export const LobbyList: FC = () => {
             />
         </antd.Row>
     );
-};
-
-export const Lobby: FC = () => {
-    const { lobbyId } = useParams<{ lobbyId: string }>();
-    const lobby = useLobby(lobbyId);
-    console.log(lobby.msToken);
-
-    return <antd.Row>{lobby.msToken && <ChatView lobbyId={lobbyId} />}</antd.Row>;
 };

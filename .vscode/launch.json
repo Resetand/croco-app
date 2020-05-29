@@ -1,0 +1,17 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "aybro",
+            "type": "chrome",
+            "request": "launch",
+            // "preLaunchTask": "npm: start",
+            // "runtimeExecutable": "/Applications/Yandex.app",
+            "url": "http://localhost:3000/",
+            "webRoot": "${workspaceRoot}/src"
+        }
+    ]
+} // eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxZjE3MTEyMy1hY2Q2LTRiOTItYWUxZS04ZDYxYWMyODQxZTEiLCJpYXQiOjE1OTA2NzA0NDQsImV4cCI6MTU5MzI2MjQ0NCwiaXNzIjoibHVkd2lnLWFwaSJ9.Fh-gTBJkDEruZgJQY1hS-HYhla8adfvZtO5cV74bbm4

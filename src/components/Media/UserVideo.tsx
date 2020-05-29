@@ -1,26 +1,30 @@
+import * as colors from '@ant-design/colors';
 import * as antd from 'antd';
 import { Video } from 'components/Media/Video';
 import { StreamManager } from 'openvidu-browser';
 import React, { FC } from 'react';
+import styled from 'styled-components';
+import { getUserByStream } from 'services/lobby';
 
-type ConnectionPayload = {
-    userId: string;
-    username: string;
+export const UserVideo: FC<{ streamManager: StreamManager }> = ({ streamManager }) => {
+    return (
+        <Container>
+            <Video streamManager={streamManager} />
+            <UserPreviewContainer>
+                <antd.Tag>{getUserByStream(streamManager).username}</antd.Tag>
+            </UserPreviewContainer>
+        </Container>
+    );
 };
 
-export const UserVideo: FC<{ stream: StreamManager }> = ({ stream }) => {
-    const getUserName = () => {
-        const data: ConnectionPayload = JSON.parse(stream.stream.connection.data);
-        return data.username;
-    };
-    return stream ? (
-        <div style={{ position: 'relative' }}>
-            <Video streamManager={stream} />
-            <div style={{ position: 'absolute', bottom: 20, left: 20 }}>
-                <antd.Typography.Text style={{ color: '#fff', textShadow: ' 1px 1px 2px black' }}>
-                    {getUserName()}
-                </antd.Typography.Text>
-            </div>
-        </div>
-    ) : null;
-};
+const Container = styled.div`
+    position: relative;
+    border-radius: 5px;
+    /* border: 5px solid ${colors.blue[2]}; */
+`;
+
+const UserPreviewContainer = styled.div`
+    position: absolute;
+    bottom: 20px;
+    left: 20px;
+`;

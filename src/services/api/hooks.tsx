@@ -1,48 +1,23 @@
-import * as icons from '@ant-design/icons';
 import * as antd from 'antd';
 import Axios, { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios';
-import { useAuth } from 'components/Auth/AuthProvider';
+import { useUser } from 'components/Auth/AuthProvider';
 import { config } from 'config';
-import React, { useMemo, useCallback } from 'react';
-import { Caller, clients } from 'services/api/utils';
-import { Token } from 'types/common';
-import { AsyncResult, error, ResultError, isError } from 'utils/result';
+import { useCallback, useMemo } from 'react';
 import * as requests from 'services/api/requests';
+import { Caller, clients } from 'services/api/utils';
+import { showError } from 'services/notifications';
+import { Token } from 'types/common';
+import { AsyncResult, isError } from 'utils/result';
 
 type CreateAxiosPayload = {
     accessToken: Token;
     setAccessToken: (t: Token) => void;
 };
 
-const handleError = (e: Error | ResultError<unknown>): ResultError<unknown> => {
-    console.error(e);
-    let resError: ResultError<unknown>;
-
-    if (e instanceof Error) {
-        resError = error('UNKNOWN', 'unknown error occurred', 500, e.message);
-    } else {
-        resError = e;
-    }
-
-    antd.notification.open({
-        message: (
-            <antd.Tag icon={<icons.CloseCircleOutlined />} color="error">
-                Error: {resError.statusCode || e.message}
-            </antd.Tag>
-        ),
-        description: (
-            <antd.Alert type="error" message={<pre>{JSON.stringify(resError, null, 2)}</pre>} />
-        ),
-    });
-
-    return resError;
-};
-
-const createAxios = ({ setAccessToken, accessToken }: CreateAxiosPayload) => {
-    const instance = Axios.create({ baseURL: config.apiUrl });
+export const createAxios = ({ setAccessToken, accessToken }: CreateAxiosPayload) => {
+    const instance = Axios.create({ baseURL: config.apiUrl, validateStatus: () => true });
 
     const reqInterceptor = (req: AxiosRequestConfig) => {
-        console.log(JSON.stringify({ req, accessToken }));
         if (accessToken) {
             req.headers['Authorization'] = `Bearer ${accessToken}`;
         }
@@ -50,19 +25,22 @@ const createAxios = ({ setAccessToken, accessToken }: CreateAxiosPayload) => {
     };
 
     const resInterceptor = (res: AxiosResponse) => {
+        if (res.status === 401) {
+            antd.message.error('Your auth token invalid has expired');
+            setAccessToken(null);
+        }
         if (isError(res.data)) {
-            handleError(res.data);
+            showError(res.data);
         }
         return res;
     };
 
     const errorInterceptor = (error: AxiosError) => {
-        alert('errorInterceptor');
-
         if (error.response?.status === 401) {
+            alert();
             setAccessToken(null);
         }
-        handleError(error);
+        showError(error);
         return Promise.reject(error);
     };
 
@@ -73,7 +51,7 @@ const createAxios = ({ setAccessToken, accessToken }: CreateAxiosPayload) => {
 };
 
 export const useAxiosInstance = () => {
-    const { accessToken, setAccessToken } = useAuth();
+    const { accessToken, setAccessToken } = useUser();
     // eslint-disable-next-line react-hooks/exhaustive-deps
     return useMemo(() => createAxios({ accessToken, setAccessToken }), [accessToken]);
 };

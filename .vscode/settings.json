@@ -2,9 +2,11 @@
     "cSpell.ignoreWords": [
         "antd",
         "croco",
+        "messages",
         "open",
         "openvidu",
         "options",
+        "prefetch",
         "refetch",
         "secret",
         "server",

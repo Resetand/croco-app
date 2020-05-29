@@ -4,7 +4,7 @@ import React, { Fragment } from 'react';
 import { Link, useHistory } from 'react-router-dom';
 import { ifSuccess } from 'utils/result';
 import { useApiCallback } from 'services/api/hooks';
-import { useAuth } from 'components/Auth/AuthProvider';
+import { useUser } from 'components/Auth/AuthProvider';
 
 type LoginValues = {
     username: string;
@@ -13,7 +13,7 @@ type LoginValues = {
 };
 
 export const LoginForm = () => {
-    const { setAccessToken } = useAuth();
+    const { setAccessToken } = useUser();
     const history = useHistory();
     const login = useApiCallback((x) => x.auth.login);
 
@@ -45,7 +45,7 @@ export const LoginForm = () => {
                     </antd.Form.Item>
                     <antd.Form.Item>
                         <antd.Form.Item name="remember" valuePropName="checked" noStyle>
-                            <antd.Checkbox>Remember me</antd.Checkbox>
+                            <antd.Checkbox value={true}>Remember me</antd.Checkbox>
                         </antd.Form.Item>
                         <Link style={{ float: 'right' }} to="/auth/forgot">
                             Forgot password?
@@ -53,7 +53,7 @@ export const LoginForm = () => {
                     </antd.Form.Item>
 
                     <antd.Form.Item>
-                        <antd.Button htmlType="submit" type="primary">
+                        <antd.Button block htmlType="submit" type="primary">
                             Login
                         </antd.Button>
                     </antd.Form.Item>

@@ -1,23 +1,24 @@
 import * as antd from 'antd';
-import { Lobby, HomePage, LobbyList, CreateLobbyModal } from 'components/Home/HomePage';
+import { AuthContainer } from 'components/Auth/AuthContainer';
+import { useUser } from 'components/Auth/AuthProvider';
+import { HomePage } from 'components/Home/HomePage';
 import React, { FC } from 'react';
 import { Redirect, Route, RouteProps, Switch, useHistory } from 'react-router-dom';
-import { AuthContainer } from 'components/Auth/AuthContainer';
-import { useAuth } from 'components/Auth/AuthProvider';
+import { LobbyList } from 'components/Lobby/LobbyList';
+import { LobbyPage } from 'components/Lobby/LobbyPage';
 
 export const AppRedirect: FC = () => (
     <Switch>
         <Route component={AuthContainer} path="/auth" />
         <PrivateRoute exact component={HomePage} path="/" />
         <PrivateRoute exact component={LobbyList} path="/lobbies" />
-        <PrivateRoute exact component={Lobby} path="/lobbies/:lobbyId" />
-        <PrivateRoute exact component={CreateLobbyModal} path="/lobbies/create" />
+        <PrivateRoute exact component={LobbyPage} path="/lobbies/:lobbyId" />
         <Route component={NotFoundPage} />
     </Switch>
 );
 
 const PrivateRoute: FC<RouteProps> = ({ children, ...props }) => {
-    const { user, accessToken } = useAuth();
+    const { user, accessToken } = useUser();
     const isLoggedIn = Boolean(user && accessToken);
 
     return <Route {...props}>{isLoggedIn ? children : <Redirect to="/auth" />}</Route>;

@@ -4,6 +4,7 @@ import { config } from 'config';
 import { Token } from 'types/common';
 import { OAUTH_TOKEN_KEY } from 'consts';
 import { isSuccess, Result } from 'utils/result';
+import { createAxios } from 'services/api/hooks';
 
 export type UserProfile = {
     id: string;
@@ -18,7 +19,7 @@ type AuthContextData = {
 };
 
 export const AuthContext = createContext<AuthContextData>(null!);
-export const useAuth = () => useContext(AuthContext);
+export const useUser = () => useContext(AuthContext);
 
 export const AuthProvider: FC = ({ children }) => {
     const [accessToken, setAccessToken] = useState(localStorage.getItem(OAUTH_TOKEN_KEY));
@@ -27,9 +28,10 @@ export const AuthProvider: FC = ({ children }) => {
 
     const updateUser = async () => {
         setLoading(true);
-        await Axios.get<Result<UserProfile>>(`${config.apiUrl}/user`, {
-            headers: { Authorization: `Bearer ${accessToken}` },
-        }).then((res) => isSuccess(res.data) && setUser(res.data));
+        const axios = createAxios({ accessToken, setAccessToken });
+        await axios
+            .get<Result<UserProfile>>(`/user`)
+            .then((res) => isSuccess(res.data) && setUser(res.data));
         setLoading(false);
     };
 

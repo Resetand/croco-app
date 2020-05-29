@@ -2,7 +2,7 @@ import { LockOutlined, MailOutlined, UserOutlined } from '@ant-design/icons';
 import * as antd from 'antd';
 import React, { FC, Fragment } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { useAuth } from 'components/Auth/AuthProvider';
+import { useUser } from 'components/Auth/AuthProvider';
 import { useApiCallback } from 'services/api/hooks';
 import { ifSuccess } from 'utils/result';
 
@@ -14,7 +14,7 @@ type RegistrationValues = {
 };
 
 export const RegistrationForm: FC = () => {
-    const { setAccessToken } = useAuth();
+    const { setAccessToken } = useUser();
     const history = useHistory();
     const registerReq = useApiCallback((x) => x.auth.register);
 
@@ -58,7 +58,7 @@ export const RegistrationForm: FC = () => {
                     </antd.Form.Item>
 
                     <antd.Form.Item>
-                        <antd.Button htmlType="submit" type="primary">
+                        <antd.Button block htmlType="submit" type="primary">
                             Register
                         </antd.Button>
                     </antd.Form.Item>
