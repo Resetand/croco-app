@@ -9,7 +9,16 @@ type MediaSessionOptions = {
     broadcastVideo?: boolean;
 };
 
-export const useMedia = (options?: MediaSessionOptions) => {
+export type MediaManager = {
+    session: Session | undefined;
+    subscribers: Subscriber[];
+    publisher: Publisher | undefined;
+    connect: (token: string) => void;
+    processing: boolean;
+    disconnect: () => void;
+};
+
+export const useMedia = (options?: MediaSessionOptions): MediaManager => {
     const ov = useRef(new OpenVidu()).current;
 
     const [publisher, setPublisher] = useState<Publisher>();
@@ -17,20 +26,18 @@ export const useMedia = (options?: MediaSessionOptions) => {
     const [processing, setProcessing] = useState(false);
     const sessionRef = useRef<Session>();
 
-    const subscribe = () => {
-        const session = sessionRef.current!;
-
-        session.on('streamCreated', async (e) => {
+    const subscribe = (ses: Session) => {
+        ses.on('streamCreated', async (e) => {
             const event = e as StreamEvent;
             antd.notification.info({
-                // TODO добавить фильтрация по пользователям которые уже в лобби
+                // TODO добавить фильтрацию по пользователям которые уже в лобби
                 message: `${getUserByStream(event.stream).username} join to lobby`,
             });
-            const subscriber = await session.subscribeAsync(event.stream, undefined!)!;
+            const subscriber = await ses.subscribe(event.stream, undefined!)!;
             setSubscribers((prev) => [...prev, subscriber]);
         });
 
-        session.on('streamDestroyed', (e) => {
+        ses.on('streamDestroyed', (e) => {
             const event = e as StreamEvent;
             antd.notification.info({
                 message: `${getUserByStream(event.stream).username} leave from lobby`,
@@ -53,22 +60,21 @@ export const useMedia = (options?: MediaSessionOptions) => {
         setProcessing(true);
         sessionRef.current = ov.initSession();
         const session = sessionRef.current!;
-        subscribe();
+        subscribe(session);
 
         const publisher: Publisher = ov.initPublisher(undefined!, {
             audioSource: undefined, // The source of audio. If undefined default microphone
             videoSource: undefined, // The source of video. If undefined default webcam
             publishAudio: options?.broadcastAudio, // Whether you want to start publishing with your audio unmuted or not
             publishVideo: options?.broadcastVideo, // Whether you want to start publishing with your video enabled or not
-            // resolution: '640x480', // The resolution of your video
+            resolution: '1440×900', // The resolution of your video
             frameRate: 30, // The frame rate of your video
             mirror: false, // Whether to mirror your local video or not
         });
 
         await session.connect(token);
-        // setSubscribers(session.streamManagers.map((x) => session.subscribe(x.stream, undefined!)));
-
         await session.publish(publisher);
+
         setPublisher(publisher);
         setProcessing(false);
     };

@@ -1,60 +1,86 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable no-sequences */
 import * as antd from 'antd';
-import React, { FC, useEffect } from 'react';
+import * as icons from '@ant-design/icons';
+
+import loadingData from 'assets/loading.json';
+import { ChatView } from 'components/Chat/Chat';
+import { GameBoard } from 'components/Lobby/GameBoard';
+import { UserVideo } from 'components/Media.2/UserVideo';
+import React, { FC, useEffect, useState, CSSProperties } from 'react';
+import Lottie from 'react-lottie';
 import { useParams } from 'react-router-dom';
 import { useLobby } from 'services/lobby';
-import { ChatView } from 'components/Chat/Chat';
 import { useMedia } from 'services/media';
-import loadingData from 'assets/loading.json';
-import Lottie from 'react-lottie';
-import { UserVideo } from 'components/Media/UserVideo';
-import { GameBoard } from 'components/Lobby/GameBoard';
+import styled from 'styled-components';
+import { FixedDropdown } from 'components/Common/FixedDropdown';
+import { StreamManager } from 'openvidu-browser';
 
 export const LobbyPage: FC = () => {
     const { lobbyId } = useParams<{ lobbyId: string }>();
     const lobby = useLobby(lobbyId);
-
-    if (!lobby.msToken) {
-        return <LoadingView />;
-    }
-
-    return (
-        <antd.Row style={{ height: '100%' }}>
-            <antd.Col span={18}>
-                <GameBoard />
-                <LobbyLayout msToken={lobby.msToken} />
-            </antd.Col>
-            <antd.Col style={{ display: 'flex', alignItems: 'flex-end' }} span={6}>
-                <ChatView lobbyId={lobbyId} />
-            </antd.Col>
-        </antd.Row>
-    );
-};
-
-const LobbyLayout: FC<{ msToken: string }> = ({ msToken }) => {
     const media = useMedia();
-    useEffect(() => void media.connect(msToken), []);
+    const [chatVisible, setChatVisible] = useState(false);
+    const [mainStreamer, setMainStreamer] = useState<StreamManager | undefined>();
 
-    if (media.processing) {
+    useEffect(() => {
+        setMainStreamer(media.publisher);
+    }, [media.publisher]);
+
+    useEffect(() => {
+        if (lobby.msToken) {
+            media.connect(lobby.msToken);
+        }
+    }, [lobby.msToken]);
+
+    if (!lobby.msToken || media.processing || !media.publisher) {
         return <LoadingView />;
     }
 
-    if (!media.publisher) {
-        return null;
-    }
+    const mainStreamStyles: CSSProperties = {
+        width: '100%',
+        height: '80vh',
+        objectFit: 'cover',
+    };
+
+    const streamStyles: CSSProperties = {
+        width: '100%',
+    };
 
     return (
         <React.Fragment>
-            <UserVideo streamManager={media.publisher} />
-
-            <antd.Row style={{ maxHeight: 200 }}>
-                {media.subscribers.map((s) => (
-                    <antd.Col key={s.id} span={4}>
-                        <UserVideo streamManager={s} />
-                    </antd.Col>
-                ))}
+            <antd.Row style={{ minHeight: '100vh' }}>
+                <antd.Col span={24}>
+                    <GameBoard />
+                    {mainStreamer && (
+                        <UserVideo style={mainStreamStyles} streamManager={mainStreamer} />
+                    )}
+                </antd.Col>
+                <antd.Row gutter={10}>
+                    {media.subscribers.map((s) => (
+                        <antd.Col key={s.id} span={8}>
+                            <UserVideo style={streamStyles} size="small" streamManager={s} />
+                        </antd.Col>
+                    ))}
+                </antd.Row>
             </antd.Row>
+            <ChatOpenIconContainer>
+                <antd.Button
+                    size={'large'}
+                    type="primary"
+                    onClick={() => setChatVisible((x) => !x)}
+                    shape="round"
+                    icon={<icons.MessageOutlined />}
+                />
+            </ChatOpenIconContainer>
+            <FixedDropdown
+                position="bottom"
+                visible={chatVisible}
+                onClose={() => setChatVisible(false)}
+            >
+                <ChatContainer>
+                    <ChatView lobbyId={lobbyId} />
+                </ChatContainer>
+            </FixedDropdown>
         </React.Fragment>
     );
 };
@@ -70,3 +96,15 @@ const LoadingView: FC = () => {
         </antd.Row>
     );
 };
+
+const ChatOpenIconContainer = styled.div`
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    transform: scale(1.3);
+`;
+
+const ChatContainer = styled.div`
+    width: 100%;
+    height: 500px;
+`;

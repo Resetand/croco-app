@@ -5,12 +5,16 @@ import * as antd from 'antd';
 import { useUser } from 'components/Auth/AuthProvider';
 import { BaseEmoji, Picker as EmojiPicker } from 'emoji-mart';
 import moment from 'moment';
-import React, { FC, useEffect, useMemo, useRef, useState } from 'react';
+import React, { FC, useEffect, useMemo, useRef, useState, SyntheticEvent } from 'react';
 import { useLobbyChat } from 'services/lobby';
 import styled from 'styled-components';
 import { MessageVm } from 'types/Chat';
 
-export const ChatView: FC<{ lobbyId: string }> = ({ lobbyId }) => {
+type ChatViewProps = {
+    lobbyId: string;
+};
+
+export const ChatView: FC<ChatViewProps> = ({ lobbyId }) => {
     const { user } = useUser();
     const chat = useLobbyChat(lobbyId);
     const messagesViewRef = useRef<HTMLDivElement>(null);
@@ -42,14 +46,16 @@ export const ChatView: FC<{ lobbyId: string }> = ({ lobbyId }) => {
     );
 };
 
-const ChatSendPanel: FC<{ onSend: (content: string) => void }> = ({ onSend }) => {
+const ChatSendPanel: FC<{ onSend: (content: string) => void; darkMode?: boolean }> = ({
+    onSend,
+}) => {
     const [content, setContent] = useState('');
 
     const picker = useMemo(
         () => (
             <EmojiPicker
                 showPreview={false}
-                theme="light"
+                theme="dark"
                 emojiTooltip={false}
                 native
                 onSelect={(x: BaseEmoji) => setContent((ctn) => ctn + x.native)}
@@ -58,20 +64,28 @@ const ChatSendPanel: FC<{ onSend: (content: string) => void }> = ({ onSend }) =>
         []
     );
 
+    const onSubmit = (e: SyntheticEvent<HTMLFormElement>) => {
+        e.preventDefault();
+        onSend(content);
+        setContent('');
+    };
+
     return (
-        <antd.Form layout="inline" onFinish={() => (onSend(content), setContent(''))}>
-            <antd.Form.Item style={{ width: 270 }}>
-                <antd.Input value={content} onChange={(e) => setContent(e.target.value)} />
-            </antd.Form.Item>
-            <antd.Form.Item>
-                <antd.Popover content={picker} trigger="click">
-                    <icons.SmileOutlined />
-                </antd.Popover>
-                <antd.Button htmlType="submit" type="link">
-                    Send
+        <ChatSendForm onSubmit={onSubmit}>
+            <antd.Input
+                style={{ flex: 1 }}
+                value={content}
+                onChange={(e) => setContent(e.target.value)}
+            />
+            <antd.Popover content={picker} trigger="click">
+                <antd.Button type="link">
+                    <icons.SmileOutlined style={{ color: '#fff' }} />
                 </antd.Button>
-            </antd.Form.Item>
-        </antd.Form>
+            </antd.Popover>
+            <antd.Button htmlType="submit" type="link">
+                Send
+            </antd.Button>
+        </ChatSendForm>
     );
 };
 
@@ -80,7 +94,7 @@ const Message: FC<{ message: MessageVm; owner?: boolean }> = ({ message: m, owne
         <antd.Comment
             content={m.content}
             author={
-                <antd.Typography.Text style={owner ? { color: colors.blue[4] } : undefined} strong>
+                <antd.Typography.Text style={{ color: owner ? colors.blue[4] : '#fff' }} strong>
                     {owner ? 'You' : m.author.username}
                 </antd.Typography.Text>
             }
@@ -93,16 +107,17 @@ const ChatContainer = styled.div`
     height: 100%;
     width: 100%;
     position: relative;
-    border: 1px solid ${colors.geekblue[0]};
-    border-radius: 4px;
+    overflow: hidden;
+    background-color: #272f38;
+    > * {
+        color: #fff !important;
+    }
 `;
 
 const ChatMessagesContainer = styled.div`
     padding-left: 20px;
     padding-right: 20px;
     padding-bottom: 70px;
-    padding-top: 10px;
-
     position: absolute;
     width: 100%;
     left: 0;
@@ -113,8 +128,20 @@ const ChatMessagesContainer = styled.div`
 const ChatSendContainer = styled.div`
     position: absolute;
     bottom: 0;
+    width: 100%;
     padding-left: 20px;
     padding-right: 20px;
+    background-color: #272f38;
     padding-bottom: 30px;
-    background: #fff;
+
+    .ant-input {
+        background-color: rgb(55, 64, 76);
+        color: #fff;
+        border: none;
+    }
+`;
+
+const ChatSendForm = styled.form`
+    display: flex;
+    align-items: center;
 `;
