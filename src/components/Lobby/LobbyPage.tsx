@@ -1,30 +1,43 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import * as antd from 'antd';
 import * as icons from '@ant-design/icons';
-
+import * as antd from 'antd';
 import loadingData from 'assets/loading.json';
 import { ChatView } from 'components/Chat/Chat';
-import { GameBoard } from 'components/Lobby/GameBoard';
-import { UserVideo } from 'components/Media.2/UserVideo';
-import React, { FC, useEffect, useState, CSSProperties } from 'react';
+import { DropdownModal } from 'components/Common/DropdownModal';
+import { UserVideo } from 'components/Media/UserVideo';
+import moment from 'moment';
+import { StreamManager } from 'openvidu-browser';
+import React, { CSSProperties, FC, useEffect, useState } from 'react';
 import Lottie from 'react-lottie';
 import { useParams } from 'react-router-dom';
-import { useLobby } from 'services/lobby';
+import { getUserByStream, useLobby } from 'services/lobby';
 import { useMedia } from 'services/media';
 import styled from 'styled-components';
-import { FixedDropdown } from 'components/Common/FixedDropdown';
-import { StreamManager } from 'openvidu-browser';
+import { useSetState } from 'utils/useSetState';
+import { useUser } from 'components/Auth/AuthProvider';
 
 export const LobbyPage: FC = () => {
+    const { user } = useUser();
     const { lobbyId } = useParams<{ lobbyId: string }>();
     const lobby = useLobby(lobbyId);
     const media = useMedia();
     const [chatVisible, setChatVisible] = useState(false);
-    const [mainStreamer, setMainStreamer] = useState<StreamManager | undefined>();
 
-    useEffect(() => {
-        setMainStreamer(media.publisher);
-    }, [media.publisher]);
+    const activeStreamers = [media.publisher, ...media.subscribers].filter(
+        Boolean
+    ) as StreamManager[];
+
+    const mainStreamer =
+        activeStreamers.find((x) => getUserByStream(x!).userId === lobby.gameSession?.player.id) ??
+        media.publisher;
+
+    const [form, patchForm, setForm] = useSetState({
+        playerId: undefined as undefined | string,
+    });
+
+    const users = [media.publisher, ...media.subscribers]
+        .filter(Boolean)
+        .map((x) => getUserByStream(x!));
 
     useEffect(() => {
         if (lobby.msToken) {
@@ -32,55 +45,113 @@ export const LobbyPage: FC = () => {
         }
     }, [lobby.msToken]);
 
-    if (!lobby.msToken || media.processing || !media.publisher) {
+    if (lobby.processing || media.processing || !media.publisher) {
         return <LoadingView />;
     }
 
-    const mainStreamStyles: CSSProperties = {
-        width: '100%',
-        height: '80vh',
-        objectFit: 'cover',
-    };
-
-    const streamStyles: CSSProperties = {
-        width: '100%',
-    };
+    const deadline = lobby.gameSession?.deadlineAt
+        ? moment(lobby.gameSession?.deadlineAt).toISOString()
+        : undefined;
 
     return (
         <React.Fragment>
-            <antd.Row style={{ minHeight: '100vh' }}>
-                <antd.Col span={24}>
-                    <GameBoard />
-                    {mainStreamer && (
-                        <UserVideo style={mainStreamStyles} streamManager={mainStreamer} />
-                    )}
-                </antd.Col>
-                <antd.Row gutter={10}>
-                    {media.subscribers.map((s) => (
-                        <antd.Col key={s.id} span={8}>
-                            <UserVideo style={streamStyles} size="small" streamManager={s} />
-                        </antd.Col>
-                    ))}
+            <div style={{ minHeight: '100vh' }}>
+                <antd.Row>
+                    <antd.Col span={24}>
+                        <antd.Card
+                            style={lobby.gameSession ? { backgroundColor: '#d4fcf0' } : undefined}
+                        >
+                            <antd.Row justify="space-between" align="bottom">
+                                <div style={{ display: 'flex' }}>
+                                    <antd.Statistic.Countdown
+                                        title="deadline"
+                                        style={{ marginLeft: 20, marginRight: 20 }}
+                                        onFinish={lobby.destroySession}
+                                        format={'mm:ss'}
+                                        value={deadline}
+                                    />
+                                    {lobby.gameSession?.player.id === user?.id && (
+                                        <antd.Statistic
+                                            title="term"
+                                            valueRender={() => lobby.gameSession?.term?.content}
+                                        />
+                                    )}
+                                </div>
+                                <div>
+                                    <antd.Select
+                                        disabled={Boolean(lobby.gameSession)}
+                                        suffixIcon={<icons.UserOutlined />}
+                                        placeholder="Select player"
+                                        style={{ minWidth: 300 }}
+                                        value={form.playerId}
+                                        onChange={(playerId) => patchForm({ playerId })}
+                                    >
+                                        {users.map((u) => (
+                                            <antd.Select.Option value={u.userId}>
+                                                {u.username}
+                                            </antd.Select.Option>
+                                        ))}
+                                    </antd.Select>
+                                    {/* <antd.Button
+                                        disabled={Boolean(lobby.gameSession)}
+                                        icon={<icons.ReadOutlined />}
+                                    >
+                                        Select term
+                                    </antd.Button> */}
+
+                                    <antd.Button
+                                        disabled={
+                                            Boolean(lobby.gameSession) ||
+                                            Object.values(form).some((x) => !x)
+                                        }
+                                        onClick={() => {
+                                            lobby.startGameSession({ ...(form as any) });
+                                            setForm({ playerId: undefined });
+                                        }}
+                                        type="primary"
+                                        icon={<icons.PlayCircleOutlined />}
+                                    >
+                                        Start game
+                                    </antd.Button>
+                                </div>
+                            </antd.Row>
+                        </antd.Card>
+                        {mainStreamer && (
+                            <UserVideo style={mainStreamStyles} streamManager={mainStreamer} />
+                        )}
+                    </antd.Col>
                 </antd.Row>
-            </antd.Row>
+                <antd.Row gutter={10} align="stretch">
+                    {activeStreamers
+                        .filter((x) => x !== mainStreamer)
+                        .map((s) => (
+                            <antd.Col key={s.id} span={4}>
+                                <UserVideo style={streamStyles} size="small" streamManager={s} />
+                            </antd.Col>
+                        ))}
+                </antd.Row>
+            </div>
             <ChatOpenIconContainer>
                 <antd.Button
                     size={'large'}
                     type="primary"
                     onClick={() => setChatVisible((x) => !x)}
-                    shape="round"
+                    shape="circle"
                     icon={<icons.MessageOutlined />}
                 />
             </ChatOpenIconContainer>
-            <FixedDropdown
+            <DropdownModal
                 position="bottom"
                 visible={chatVisible}
                 onClose={() => setChatVisible(false)}
             >
                 <ChatContainer>
-                    <ChatView lobbyId={lobbyId} />
+                    <ChatView
+                        onMessagedSend={(content) => lobby.sendGuess({ content })}
+                        lobbyId={lobbyId}
+                    />
                 </ChatContainer>
-            </FixedDropdown>
+            </DropdownModal>
         </React.Fragment>
     );
 };
@@ -95,6 +166,16 @@ const LoadingView: FC = () => {
             </div>
         </antd.Row>
     );
+};
+
+const mainStreamStyles: CSSProperties = {
+    width: '100%',
+    height: '80vh',
+    objectFit: 'cover',
+};
+
+const streamStyles: CSSProperties = {
+    width: '100%',
 };
 
 const ChatOpenIconContainer = styled.div`

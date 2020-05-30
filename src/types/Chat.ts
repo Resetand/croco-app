@@ -1,6 +1,8 @@
+import { UserVm } from 'types/User';
+
 export type MessageVm = {
     id: string;
-    author: { id: string; username: string };
+    author: UserVm;
     content: string;
     createdAt: Date | string;
 };

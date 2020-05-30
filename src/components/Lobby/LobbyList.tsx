@@ -6,8 +6,9 @@ import { ColumnsType } from 'antd/lib/table';
 import React, { FC, useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import { useApiCallback } from 'services/api/hooks';
-import { Lobby as LobbyT } from 'types/Lobby';
+import { LobbyVm } from 'types/Lobby';
 import { ifSuccess } from 'utils/result';
+import moment from 'moment';
 
 export const HomePage: FC = () => {
     return (
@@ -54,7 +55,7 @@ export const CreateLobbyModal: FC<CreateLobbyModalProps> = ({ onSuccess, visible
 
 export const LobbyList: FC = () => {
     const getLobbies = useApiCallback((x) => x.lobbies.getLobbies);
-    const [lobbies, setLobbies] = useState<LobbyT[]>([]);
+    const [lobbies, setLobbies] = useState<LobbyVm[]>([]);
     const [loading, setLoading] = useState(false);
     const [modalVisible, setModalVisible] = useState(false);
 
@@ -68,7 +69,7 @@ export const LobbyList: FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => void refetch(), []);
 
-    const columns: ColumnsType<LobbyT> = [
+    const columns: ColumnsType<LobbyVm> = [
         { title: 'Name', dataIndex: 'name' },
         {
             title: 'ID',
@@ -78,6 +79,16 @@ export const LobbyList: FC = () => {
                     <code>{record.id}</code>
                 </antd.Tag>
             ),
+        },
+        {
+            title: 'Created at',
+            dataIndex: 'createdAt',
+            render: (_, v) => moment(v.createdAt).fromNow(),
+        },
+        {
+            title: 'Updated at',
+            dataIndex: 'updatedAt',
+            render: (_, v) => moment(v.updatedAt).fromNow(),
         },
     ];
     const { push } = useHistory();

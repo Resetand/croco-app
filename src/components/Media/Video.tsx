@@ -3,17 +3,15 @@ import { StreamManager } from 'openvidu-browser';
 
 type VideoProps = {
     streamManager: StreamManager;
-    width?: CSSProperties['width'];
-    height?: CSSProperties['height'];
-    objectFit?: CSSProperties['objectFit'];
+    style?: CSSProperties;
 };
 
-export const Video: FC<VideoProps> = ({ streamManager, width, height, objectFit = 'cover' }) => {
+export const Video: FC<VideoProps> = ({ streamManager, style }) => {
     const ref = useRef<HTMLVideoElement>(null);
 
     useEffect(() => {
         ref.current && streamManager.addVideoElement(ref.current);
     }, [streamManager]);
 
-    return <video style={{ width, height, objectFit }} autoPlay={true} ref={ref} />;
+    return <video style={style} autoPlay={true} ref={ref} />;
 };

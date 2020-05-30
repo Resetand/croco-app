@@ -1,10 +1,8 @@
-import Axios from 'axios';
-import React, { createContext, FC, useContext, useEffect, useState } from 'react';
-import { config } from 'config';
-import { Token } from 'types/common';
 import { OAUTH_TOKEN_KEY } from 'consts';
-import { isSuccess, Result } from 'utils/result';
+import React, { createContext, FC, useContext, useEffect, useState } from 'react';
 import { createAxios } from 'services/api/hooks';
+import { Token } from 'types/common';
+import { isSuccess, Result } from 'utils/result';
 
 export type UserProfile = {
     id: string;
@@ -26,9 +24,16 @@ export const AuthProvider: FC = ({ children }) => {
     const [user, setUser] = useState<UserProfile | undefined>();
     const [isLoading, setLoading] = useState(Boolean(accessToken));
 
+    const setAccessTokenIml = (token: Token) => {
+        setAccessToken(token);
+        token
+            ? localStorage.setItem(OAUTH_TOKEN_KEY, token)
+            : localStorage.removeItem(OAUTH_TOKEN_KEY);
+    };
+
     const updateUser = async () => {
         setLoading(true);
-        const axios = createAxios({ accessToken, setAccessToken });
+        const axios = createAxios({ accessToken, setAccessToken: setAccessTokenIml });
         await axios
             .get<Result<UserProfile>>(`/user`)
             .then((res) => isSuccess(res.data) && setUser(res.data));
@@ -39,13 +44,6 @@ export const AuthProvider: FC = ({ children }) => {
         accessToken ? updateUser() : setUser(undefined);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [accessToken]);
-
-    const setAccessTokenIml = (token: Token) => {
-        setAccessToken(token);
-        token
-            ? localStorage.setItem(OAUTH_TOKEN_KEY, token)
-            : localStorage.removeItem(OAUTH_TOKEN_KEY);
-    };
 
     const ctx: AuthContextData = {
         user,

@@ -12,9 +12,10 @@ import { MessageVm } from 'types/Chat';
 
 type ChatViewProps = {
     lobbyId: string;
+    onMessagedSend?: (content: string) => void;
 };
 
-export const ChatView: FC<ChatViewProps> = ({ lobbyId }) => {
+export const ChatView: FC<ChatViewProps> = ({ lobbyId, onMessagedSend }) => {
     const { user } = useUser();
     const chat = useLobbyChat(lobbyId);
     const messagesViewRef = useRef<HTMLDivElement>(null);
@@ -28,6 +29,7 @@ export const ChatView: FC<ChatViewProps> = ({ lobbyId }) => {
 
     const send = (content: string) => {
         if (content) {
+            onMessagedSend?.(content);
             chat.sendMessage(content);
         }
     };

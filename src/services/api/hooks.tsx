@@ -26,7 +26,6 @@ export const createAxios = ({ setAccessToken, accessToken }: CreateAxiosPayload)
 
     const resInterceptor = (res: AxiosResponse) => {
         if (res.status === 401) {
-            antd.message.error('Your auth token invalid has expired');
             setAccessToken(null);
         }
         if (isError(res.data)) {
@@ -37,7 +36,6 @@ export const createAxios = ({ setAccessToken, accessToken }: CreateAxiosPayload)
 
     const errorInterceptor = (error: AxiosError) => {
         if (error.response?.status === 401) {
-            alert();
             setAccessToken(null);
         }
         showError(error);
