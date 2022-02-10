@@ -10,7 +10,7 @@
         "craco-less": "^1.16.0",
         "emoji-mart": "^3.0.0",
         "moment": "^2.26.0",
-        "node-sass": "^4.13.1",
+        "node-sass": "^7.0.0",
         "openvidu-browser": "^2.13.0",
         "react": "16.8.6",
         "react-click-outside": "^3.0.1",
